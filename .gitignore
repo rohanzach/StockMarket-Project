@@ -1,0 +1,6 @@
+*.pyc
+__pycache__/
+devenv/
+*.json
+*.db
+*.csv
