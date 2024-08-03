@@ -1,3 +1,18 @@
 FROM python:3.9-slim
 
-RUN apt-get update && apt-get install -y git pip
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+	git \
+	curl \
+	&& rm -rf /var/lib/apt/lists/*
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+	&& apt-get install -y nodejs \
+	&& rm -rf /var/lib/apt/lists/*
+
+# Install pip
+RUN pip install --upgrade pip
+
+# Verify installations
+RUN python --version && node --version && npm --version

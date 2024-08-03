@@ -91,3 +91,15 @@ def add_columns_option_data(options_data, price_data, type='call'):
             chain['Prob Profit'] = chain.apply(lambda row: calculate_prob_profit_bs(r=r, S=s, K=row['strike'], T=row['t'], sigma=sigma, type='put'), axis=1)
             chain['Expected Option-Income Return'] = chain.apply(lambda row: (1 - row['Prob Profit']) * row['Option Income'], axis=1)
     return options_data
+
+def sma_calculator(price_data, window=20):
+    sma = price_data['Close'].rolling(window=window).mean()
+    return sma
+
+def bollinger_bands(price_data, window=20):
+    sma = sma_calculator(price_data, window=window)
+    std = price_data['Close'].rolling(window=window).std()
+    upper_band = sma + (2*std)
+    lower_band = sma - (2*std)
+    return upper_band, lower_band
+

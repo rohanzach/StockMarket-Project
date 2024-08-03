@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from .api_logic import call_api
 from .financial_logic import *
 
@@ -12,5 +12,10 @@ def index(request):
     options_call_data = add_columns_option_data(options_call_data, price_data, type='call')
     options_put_data = add_columns_option_data(options_put_data, price_data, type='put')
 
-    print(options_put_data[1])
-    return HttpResponse("hello world!")
+    data = {
+        'price_data': price_data.to_dict(),
+        'options_call_data': options_call_data.to_dict(),
+        'options_put_data': options_put_data.to_dict()
+    }
+
+    return JsonResponse(data)
