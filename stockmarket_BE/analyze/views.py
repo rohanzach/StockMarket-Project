@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework import generics
 from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .api_logic import call_api
+from .finance_api_logic import call_api
 from .financial_logic import *
 
 # Create your views here.

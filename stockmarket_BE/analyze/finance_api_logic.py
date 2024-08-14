@@ -40,7 +40,7 @@ def get_stock_price_history(stock_symbol='JPM', session=None):
     return stock_data
 
 def call_api(tic):
-    session = requests_cache.CachedSession('yfinance.cache')
+    session = requests_cache.CachedSession('./cache.sqlite3', backend='sqlite', expire_after=3600)
     session.headers['User-agent'] = 'my-program/1.0'
     price_data = get_stock_price_history(tic, session=session)
     options_call_data, options_put_data = get_option_data(tic, session=session)
