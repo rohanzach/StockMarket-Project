@@ -14,5 +14,5 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 # Install pip
 RUN pip install --upgrade pip
 
-# Verify installations
-RUN python --version && node --version && npm --version
+# Expose port
+EXPOSE 8000 3000
