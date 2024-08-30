@@ -1,5 +1,5 @@
 import { Route } from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "../components/ProtectedRoute";
 import Home from "./Home";
 
 function NotFound() {
@@ -36,14 +36,6 @@ function NotFound() {
 
               <span>Go back</span>
             </button>
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Home />
-                </ProtectedRoute>
-              }
-            />
             <button class="w-1/2 px-5 py-2 text-sm tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-lg shrink-0 sm:w-auto hover:bg-blue-600 dark:hover:bg-blue-500 dark:bg-blue-600">
               Take me home
             </button>
