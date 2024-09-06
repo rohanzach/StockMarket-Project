@@ -73,6 +73,7 @@ def add_columns_option_data(options_data, price_data, type='call'):
     
     for chain in options_data:
         t = (pd.to_datetime(chain['date'][0]) - pd.to_datetime('today')).days/365
+        t = 1/365 if t <= 0 else t
         chain['t'] = t
         if type == 'call':
             chain['Option Income'] = chain['lastPrice'] * 100

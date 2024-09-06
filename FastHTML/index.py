@@ -27,8 +27,8 @@ def post(ticker: str):
         price_data = add_columns_stock_data(price_data)
         # options_call_data = add_columns_option_data(options_call_data, price_data, type='call')
         options_put_data = add_columns_option_data(options_put_data, price_data, type='put')
-    except:
-        return H1('Error')
+    except Exception as e:
+        return P(f'Error: {e}')
     
     price = price_data.iloc[-1]['Close']
     filtered_data = options_put_data[6][(options_put_data[6]['strike'] < price)]
@@ -45,7 +45,6 @@ def post(ticker: str):
     # Display
     return Titled('Interesting Put Options',
         H1(f'Ticker: {ticker}'),
-        # Th('Strike'), Th('Option Income'), Th('BS Price'), Th('Delta'), Th('Theta'), Th('Prob Profit'), Th('Expected Option-Income Return')
         Details(
             Summary(answer_data['date'].iloc[0]),
             Table(
