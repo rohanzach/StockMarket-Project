@@ -2,8 +2,42 @@ from fasthtml.common import *
 from FH_financial_logic import *
 from FH_finance_api_logic import call_api
 
+# headers = (Script(src="https://cdn.tailwindcss.com"),
+#            Link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/daisyui@4.11.1/dist/full.min.css"))
+
 
 app,rt = fast_app(live=True)
+
+def create_option_table(data, i, band):
+    open_value = True if i == 0 else False
+    # print(band)
+    # style_value='background-color: #d4edda;' if row['strike'] > band else 'background-color: #f8d7da;'
+    return Details(
+            Summary(data['date'].iloc[0]),
+            Table(cls='striped overflow-auto')(
+            Tr(
+            Th('Date'),
+            Th('Strike'), 
+            Th('Option Income'), 
+            Th('BS Price'), 
+            Th('Delta'), 
+            Th('Theta'), 
+            Th('Prob Profit'), 
+            Th('Expected Option-Income'),
+            ),
+            *[Tr()(
+                Td(row['date']),
+                Td(f'${row['strike']}'),
+                Td(f'${round(row["Option Income"], 2)}'),
+                Td(f'${round(row["BS Price"]*100, 4)}'),
+                Td(round(row['Delta'], 4)),
+                Td(round(row['Theta'], 4)),
+                Td(round(row['Prob Profit'], 4)),
+                Td(f'${round(row['Expected Option-Income Return'], 2)}'),
+            ) for index, row in data.iterrows()]
+            ),
+            open=open_value
+        )
 
 @rt('/')
 def get(): 
@@ -31,47 +65,28 @@ def post(ticker: str):
         return P(f'Error: {e}')
     
     price = price_data.iloc[-1]['Close']
-    filtered_data = options_put_data[6][(options_put_data[6]['strike'] < price)]
-    # Calculate the days to expiration
-    # exp_day = (pd.to_datetime(filtered_data['date'].iloc[0]) - pd.to_datetime('today')).days
-
     # Calculate the SMA and Bollinger Bands
     sma = price_data['Close'].rolling(window=30).mean()
     std = price_data['Close'].rolling(window=30).std()
     lower_band = sma - (2 * std)
-    answer_data = filtered_data[(filtered_data['strike'] < lower_band.iloc[-1])]
-    max_row = answer_data.loc[answer_data['Expected Option-Income Return'].idxmax()]
+
+    ui_tables = []
+    for i in range(len(options_put_data)):
+        data = options_put_data[i][options_put_data[i]['strike'] <= price]
+        # data = data[data['strike'] >= lower_band.iloc[-1]]
+        if data.empty:
+            continue
+        else:
+            ui_table = create_option_table(data, i, lower_band.iloc[-1])
+            ui_tables.append(ui_table)    
     
     # Display
     return Titled('Interesting Put Options',
         H1(f'Ticker: {ticker}'),
-        Details(
-            Summary(answer_data['date'].iloc[0]),
-            Table(
-            Tr(
-            Th('Date'),
-            Th('Strike'), 
-            Th('Option Income'), 
-            Th('BS Price'), 
-            Th('Delta'), 
-            Th('Theta'), 
-            Th('Prob Profit'), 
-            Th('Expected Option-Income Return')
-            ),
-            *[Tr(
-                Td(row['date']),
-                Td(f'${row['strike']}'),
-                Td(f'${round(row["Option Income"], 2)}'),
-                Td(f'${round(row["BS Price"]*100, 6)}'),
-                Td(round(row['Delta'], 4)),
-                Td(round(row['Theta'], 4)),
-                Td(round(row['Prob Profit'], 4)),
-                Td(f'${round(row['Expected Option-Income Return'], 2)}')
-            ) for index, row in answer_data.iterrows()]
-            ),
-            open=True
-        ),
-        P(max_row)
+        P(f'Current Price: ${round(price,2)}'),
+        P(f'SMA: ${round(sma.iloc[-1], 2)}, Bollinger Band: {round(lower_band.iloc[-1], 2)}'),
+        # P(f'Bollinger Band: {lower_band.iloc[-1]}')
+        *ui_tables 
     )
 
 serve()
