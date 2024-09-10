@@ -4,4 +4,4 @@ devenv/
 *.json
 *.db
 *.csv
-.env
+*.env
