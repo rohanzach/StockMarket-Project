@@ -89,8 +89,8 @@ def add_columns_option_data(options_data, price_data, type='call'):
             chain['BS Price'] = chain.apply(lambda row: blackScholes(r=r, S=s, K=row['strike'], T=row['t'], sigma=sigma, type='p'), axis=1)
             chain['Delta'] = chain.apply(lambda row: delta_calc(r=r, S=s, K=row['strike'], T=row['t'], sigma=sigma, type='p'), axis=1)
             chain['Theta'] = chain.apply(lambda row: theta_calc(r=r, S=s, K=row['strike'], T=row['t'], sigma=sigma, type='p'), axis=1)
-            chain['Prob Profit'] = chain.apply(lambda row: calculate_prob_profit_bs(r=r, S=s, K=row['strike'], T=row['t'], sigma=sigma, type='put'), axis=1)
-            chain['Expected Option-Income Return'] = chain.apply(lambda row: (1 - row['Prob Profit']) * row['Option Income'], axis=1)
+            chain['Prob Profit'] = chain.apply(lambda row: (1 - calculate_prob_profit_bs(r=r, S=s, K=row['strike'], T=row['t'], sigma=sigma, type='put')), axis=1)
+            chain['Expected Option-Income Return'] = chain.apply(lambda row: (row['Prob Profit']) * row['Option Income'], axis=1)
     return options_data
 
 def sma_calculator(price_data, window=20):

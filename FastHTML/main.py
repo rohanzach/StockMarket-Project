@@ -56,6 +56,17 @@ def create_option_table(data, i, band):
         )
     )
 
+def top_nav():
+    return Div(cls='md:flex md:items-center md:justify-between bg-gray-50 px-4 py-4')(
+            Div(cls='min-w-0 flex-1')(
+                H2('Option Income Finder', cls='text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight')
+            ),
+            Div(cls='mt-4 flex md:ml-4 md:mt-0')(
+                A('Logout', type='button', href='/logout',
+                       cls='ml-3 inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600')
+            )
+        )
+
 
 # Create the app and routes
 app = FastHTML(hdrs=hdrs, before=bware)
@@ -116,14 +127,14 @@ def callback(code:str, session):
 @rt('/logout')
 def logout(session):
     session.clear()
-    return RedirectResponse('/login', status_code=303)
+    return RedirectResponse('/', status_code=303)
 
 
 # Main route
 @rt('/')
 def get(auth): 
     ticker_form = Form(method='post', action='/get-ticker')(
-        Div(
+        Div( 
             Div(
                 Input(type='text', name='ticker', placeholder='Stock Ticker (e.g., AAPL)',
                       cls = 'bg-gray-50 block w-full rounded-full border-0 px-4 py-1.5 text-black shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6', 
@@ -158,10 +169,12 @@ def get(auth):
             cls='max-w-md w-full space-y-8'
             )
 
-
-    return Div(cls='min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8')(
+    return Div(
+        top_nav(),
+        Div(cls='min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8')(
         static_text,
         ticker_form
+        )
     )
 
 @rt('/get-ticker', methods=['POST'])
@@ -193,11 +206,14 @@ def post(option_type: str,ticker: str, auth):
                 ui_tables.append(ui_table)    
         
         # Display
-        return Div(cls='min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8')(
-            H1(f'Ticker: {ticker}', cls='mt-6 text-center text-3xl font-extrabold text-black'),
-            P(f'Current Price: ${round(price,2)}', cls='mt-2 text-center text-sm text-black'),
-            P(f'SMA: ${round(sma.iloc[-1], 2)}, Bollinger Band: {round(lower_band.iloc[-1], 2)}', cls='mt-2 text-center text-sm text-black'),
-            *ui_tables 
+        return Div(
+            top_nav(),
+            Div(cls='min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8')(
+                H1(f'Ticker: {ticker}', cls='mt-6 text-center text-3xl font-extrabold text-black'),
+                P(f'Current Price: ${round(price,2)}', cls='mt-2 text-center text-sm text-black'),
+                P(f'SMA: ${round(sma.iloc[-1], 2)}, Bollinger Band: {round(lower_band.iloc[-1], 2)}', cls='mt-2 text-center text-sm text-black'),
+                *ui_tables 
+            )
         )
     else:
         for i in range(len(options_call_data)):
@@ -209,45 +225,16 @@ def post(option_type: str,ticker: str, auth):
                 ui_tables.append(ui_table)    
         
         # Display
-        return Div(cls='min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8')(
-            H1(f'Ticker: {ticker}', cls='mt-6 text-center text-3xl font-extrabold text-black'),
-            P(f'Current Price: ${round(price,2)}', cls='mt-2 text-center text-sm text-black'),
-            P(f'SMA: ${round(sma.iloc[-1], 2)}, Bollinger Band: {round(upper_band.iloc[-1], 2)}', cls='mt-2 text-center text-sm text-black'),
-            *ui_tables 
+        return Div(
+            top_nav(), 
+            Div(cls='min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8')(
+                H1(f'Ticker: {ticker}', cls='mt-6 text-center text-3xl font-extrabold text-black'),
+                P(f'Current Price: ${round(price,2)}', cls='mt-2 text-center text-sm text-black'),
+                P(f'SMA: ${round(sma.iloc[-1], 2)}, Bollinger Band: {round(upper_band.iloc[-1], 2)}', cls='mt-2 text-center text-sm text-black'),
+                *ui_tables 
+            )
         )
 
-@rt('/test')
-def test():
-    return Div(
-    Table(
-        Thead(
-            Tr(
-                Th(),
-                Th('Name'),
-                Th('Job'),
-                Th('company'),
-                Th('location'),
-                Th('Last Login'),
-                Th('Favorite Color')
-            )
-        ),
-        Tbody(
-            Tr(
-                Th('1'),
-                Td('Cy Ganderton'),
-                Td('Quality Control Specialist'),
-                Td('Littel, Schaden and Vandervort'),
-                Td('Canada'),
-                Td('12/16/2020'),
-                Td('Blue')
-            )
-        ),
-        cls='table table-xs'
-    ),
-    cls='overflow-x-auto'
-)
 
-
-
-
+# Run the app
 serve()
