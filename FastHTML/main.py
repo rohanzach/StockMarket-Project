@@ -4,12 +4,35 @@ from FH_financial_logic import *
 from FH_finance_api_logic import call_api
 from dotenv import load_dotenv
 import os
+
+from database import get_db, init_db
+from sqlalchemy.orm import Session
+from models import User, OptionTrade
+
+
 import json
+
+
+# ----------------------------------------------
+# Load the environment variables
+# env_path = os.path.join(os.path.dirname(__file__), 'dev.env')
+# load_dotenv(env_path)
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
+
+# Change the redirect URI based on the environment
+REDIRECT_URI = "http://localhost:5001/auth/callback"
+# REDIRECT_URI = "https://option-project-production.up.railway.app/auth/callback"
+
+# print(GOOGLE_CLIENT_ID)
+# Create the Google App Client
+oauth_client = GoogleAppClient(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, REDIRECT_URI)
+# ----------------------------------------------
+
 
 # Header for the HTML
 hdrs = (Script(src="https://cdn.tailwindcss.com"),
     Link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/daisyui@4.11.1/dist/full.min.css"))
-
 
 # Beforeware to check if the user is logged in
 def before(req, session):
@@ -67,20 +90,13 @@ def top_nav():
             )
         )
 
-
 # Create the app and routes
 app = FastHTML(hdrs=hdrs, before=bware)
 rt = app.route
 
-# Load the environment variables
-env_path = os.path.join(os.path.dirname(__file__), 'dev.env')
-load_dotenv(env_path)
-GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
-GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
-REDIRECT_URI = "http://localhost:5001/auth/callback"
-
-# Create the Google App Client
-oauth_client = GoogleAppClient(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, REDIRECT_URI)
+@app.on_event("startup")
+async def startup():
+    init_db()
 
 # Login and Logout routes
 @rt('/login')
@@ -128,7 +144,6 @@ def callback(code:str, session):
 def logout(session):
     session.clear()
     return RedirectResponse('/', status_code=303)
-
 
 # Main route
 @rt('/')
@@ -234,6 +249,42 @@ def post(option_type: str,ticker: str, auth):
                 *ui_tables 
             )
         )
+
+
+
+# Example route with database access
+@rt('/trades')
+def get_trades(db: Session = get_db()):
+    trades = db.query(OptionTrade).all()
+    return Div(cls='container mx-auto')(
+        Table(cls='table')(
+            Tr(
+                Th('Symbol'),
+                Th('Type'),
+                Th('Strike'),
+                Th('Premium')
+            ),
+            *[Tr(
+                Td(trade.symbol),
+                Td(trade.option_type),
+                Td(trade.strike_price),
+                Td(trade.premium)
+            ) for trade in trades]
+        )
+    )
+
+# Example route to add a trade
+@rt('/add_trade')
+def add_trade(symbol: str, option_type: str, strike_price: float, premium: float, db: Session = get_db()):
+    new_trade = OptionTrade(
+        symbol=symbol,
+        option_type=option_type,
+        strike_price=strike_price,
+        premium=premium
+    )
+    db.add(new_trade)
+    db.commit()
+    return RedirectResponse('/trades', status_code=303)
 
 
 # Run the app
